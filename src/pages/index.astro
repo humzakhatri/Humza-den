@@ -1,0 +1,148 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const entries = (await getCollection('den', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 5);
+---
+
+<BaseLayout>
+  <section class="intro">
+    <h1>Hey, I'm Humza.</h1>
+    <p>
+      Software engineer with a deep love for building things — products, systems, tools,
+      and the occasional side project that gets out of hand. I care about clean abstractions,
+      fast feedback loops, and shipping.
+    </p>
+    <p>
+      This is my <strong>DEN</strong> — Daily Engineering Notebook. A place to think out loud
+      about what I'm building, what I'm learning, and what I'm figuring out. No polish required.
+    </p>
+    <div class="links">
+      <a href="/now" class="btn">What I'm up to now →</a>
+      <a href="https://github.com/humzakhatri" target="_blank" rel="noopener" class="btn btn-ghost">GitHub</a>
+    </div>
+  </section>
+
+  {entries.length > 0 && (
+    <section class="recent">
+      <h2>Recent entries</h2>
+      <ul class="entry-list">
+        {entries.map(entry => (
+          <li>
+            <a href={`/den/${entry.id}`}>
+              <span class="entry-title">{entry.data.title}</span>
+              <span class="entry-date">
+                {entry.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .intro {
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 3rem;
+  }
+
+  .intro h1 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .intro p {
+    color: var(--color-text-muted);
+    max-width: 580px;
+    font-size: 1rem;
+  }
+
+  .intro strong {
+    color: var(--color-text);
+  }
+
+  .links {
+    margin-top: 1.75rem;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--color-teal);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover {
+    opacity: 0.85;
+    text-decoration: none;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+  }
+
+  .recent h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-light);
+    font-family: var(--font-mono);
+    margin-bottom: 1rem;
+  }
+
+  .entry-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .entry-list li {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .entry-list li:first-child {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .entry-list a {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: color 0.15s;
+  }
+
+  .entry-list a:hover {
+    color: var(--color-accent);
+  }
+
+  .entry-title {
+    font-size: 0.95rem;
+  }
+
+  .entry-date {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('den', ({ data }) => !data.draft);
+  return entries.map(entry => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={entry.data.title}>
+  <article>
+    <header class="entry-header">
+      <a href="/now" class="back">← Back</a>
+      <h1>{entry.data.title}</h1>
+      <time>
+        {entry.data.date.toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+      </time>
+      {entry.data.tags.length > 0 && (
+        <div class="tags">
+          {entry.data.tags.map(tag => <span class="tag">{tag}</span>)}
+        </div>
+      )}
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .back {
+    font-size: 0.825rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1.25rem;
+  }
+
+  .back:hover {
+    color: var(--color-accent);
+  }
+
+  .entry-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .entry-header h1 {
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+
+  time {
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-light);
+    display: block;
+  }
+
+  .tags {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    background: var(--color-yellow);
+    color: var(--color-text-muted);
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+  }
+
+  .prose {
+    font-size: 0.975rem;
+    max-width: 640px;
+  }
+
+  .prose h2 {
+    font-size: 1.1rem;
+    margin: 2rem 0 0.75rem;
+  }
+
+  .prose h3 {
+    font-size: 0.95rem;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--color-text-muted);
+  }
+</style>

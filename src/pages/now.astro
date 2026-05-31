@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+const allEntries = (await getCollection('den', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Group by year-month for the archive sidebar
+const archive: Record<string, typeof allEntries> = {};
+for (const entry of allEntries) {
+  const key = entry.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long' });
+  if (!archive[key]) archive[key] = [];
+  archive[key].push(entry);
+}
+
+const latest = allEntries[0];
+const { Content } = latest ? await render(latest) : { Content: null };
+---
+
+<BaseLayout title="Now">
+  <div class="now-layout">
+    <article class="now-content">
+      <div class="now-header">
+        <span class="now-label">Now</span>
+        {latest && (
+          <time class="now-date">
+            {latest.data.date.toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
+        )}
+      </div>
+
+      {latest && Content ? (
+        <div class="prose">
+          <Content />
+        </div>
+      ) : (
+        <p class="empty">Nothing here yet. First entry coming soon.</p>
+      )}
+    </article>
+
+    <aside class="sidebar">
+      <h3>Archive</h3>
+      {Object.entries(archive).map(([month, entries]) => (
+        <div class="archive-group">
+          <span class="archive-month">{month}</span>
+          <ul>
+            {entries.map(entry => (
+              <li>
+                <a href={`/den/${entry.id}`}>
+                  {entry.data.date.toLocaleDateString('en-CA', { day: 'numeric' })}
+                  {' — '}
+                  {entry.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .now-layout {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  @media (max-width: 640px) {
+    .now-layout {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      border-top: 1px solid var(--color-border);
+      padding-top: 2rem;
+    }
+  }
+
+  .now-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .now-label {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .now-date {
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    color: var(--color-text-light);
+  }
+
+  .prose {
+    font-size: 0.975rem;
+    color: var(--color-text);
+  }
+
+  .prose h2 {
+    font-size: 1.1rem;
+    margin: 2rem 0 0.5rem;
+    padding: 0.2rem 0.6rem;
+    background: var(--color-peach);
+    border-radius: 3px;
+    display: inline-block;
+  }
+
+  .prose h3 {
+    font-size: 0.95rem;
+    margin: 1.5rem 0 0.4rem;
+    color: var(--color-text-muted);
+  }
+
+  .empty {
+    color: var(--color-text-light);
+    font-style: italic;
+  }
+
+  /* Sidebar */
+  .sidebar h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-light);
+    font-family: var(--font-mono);
+    margin-bottom: 1rem;
+  }
+
+  .archive-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .archive-month {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 0.35rem;
+    font-family: var(--font-mono);
+  }
+
+  .archive-group ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .archive-group li {
+    margin-bottom: 0.25rem;
+  }
+
+  .archive-group a {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    line-height: 1.5;
+  }
+
+  .archive-group a:hover {
+    color: var(--color-accent);
+  }
+</style>
